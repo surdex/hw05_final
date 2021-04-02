@@ -1,0 +1,22 @@
+{% extends "includes/base.html" %}
+{% block title %}Страница пользователя {{ author.get_username }}{% endblock %}
+{% block header %}Страница пользователя{% endblock %}
+{% block content %}
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                {% include 'includes/user_card.html' %}
+            </div>
+
+            <div class="col-md-9">                
+                {% for post in page %}
+                <!-- Начало блока с отдельным постом --> 
+                        {% include 'includes/post_card.html' %}
+                    {% if not forloop.last %}<hr>{% endif %}
+                {% endfor %}
+                {% include "includes/paginator.html" %}
+     </div>
+    </div>
+</main>
+
+{% endblock %}
