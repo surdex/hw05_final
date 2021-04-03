@@ -9,9 +9,22 @@
     </div>
     <ul class="list-group list-group-flush">
             <li class="list-group-item">
+                        {% if user != author and user.is_authenticated %}
+                                {% if following %}
+                                <a class="btn btn-lg btn-light" 
+                                        href="{% url 'profile_unfollow' username=author.username %}" role="button"> 
+                                        Отписаться 
+                                </a> 
+                                {% else %}
+                                <a class="btn btn-lg btn-primary" 
+                                        href="{% url 'profile_follow' username=author.username %}" role="button">
+                                Подписаться 
+                                </a>
+                                {% endif %}
+                        {% endif %}
                     <div class="h6 text-muted">
-                    Подписчиков: XXX <br />
-                    Подписан: XXX
+                    Подписчиков: {{ author.following.count }} <br />
+                    Подписан: {{ author.follower.count }}
                     </div>
             </li>
             <li class="list-group-item">

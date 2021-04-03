@@ -35,8 +35,15 @@ class StaticURLTests(TestCase):
         ]
         cls.URLs_list_for_authorized = [
             '/new/',
+            '/follow/',
             f'/{cls.user.username}/{cls.post.id}/edit/',
         ]
+        cls.redir_for_authorized = {
+            f'/{cls.user.username}/{cls.post.id}/comment/':
+                f'/{cls.user.username}/{cls.post.id}/',
+            f'/{cls.user.username}/follow/': '/',
+            f'/{cls.user.username}/unfollow/': '/',
+        }
 
     def setUp(self):
         self.guest_client = Client()
@@ -46,6 +53,16 @@ class StaticURLTests(TestCase):
         self.authorized_client_without_posts.force_login(
             StaticURLTests.user_without_posts
         )
+
+    def test_new_and_post_edit_url_redirect_anonymous(self):
+        """Страницы перенаправляющие анонимного пользователя."""
+        redir_for_authorized = StaticURLTests.redir_for_authorized
+
+        for url, redir_url in redir_for_authorized.items():
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url, follow=True)
+
+                self.assertRedirects(response, redir_url)
 
     def test_URls_exists_at_desired_location_for_guest(self):
         """Страницы доступные любому пользователю."""

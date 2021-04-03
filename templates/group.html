@@ -7,12 +7,9 @@
   <p>
     {{ group.description }}
   </p>
-  {% for item in page %}
-    <h3>
-        Автор: {{ item.author.get_full_name  }}, дата публикации: {{ item.pub_date|date:"d M Y" }}
-    </h3>
+  {% for post in page %}
     <p>
-        {{ item.text }}
+      {% include 'includes/post_card.html' %}
     </p>
     <hr>
   {% endfor %}

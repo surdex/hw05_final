@@ -1,0 +1,15 @@
+{% extends "includes/base.html" %}
+{% block title %}Подписки{% endblock %}
+{% block header %}Ваши подписки{% endblock %}
+{% block content %}
+    {% include "includes/menu.html" with index=True %}
+   
+    {% for post in page %}
+
+        <p>{% include 'includes/post_card.html' with post=post %}</p>
+        {% if not forloop.last %}<hr>{% endif %}
+    {% endfor %}
+
+    {% include "includes/paginator.html" %}
+        
+{% endblock %}

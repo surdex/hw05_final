@@ -2,15 +2,15 @@
 {% block title %}Последние обновления на сайте{% endblock %}
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
+    {% include "includes/menu.html" with index=True %}
+    {% load cache %}
+        {% cache 20 index_page page %}    
+            {% for post in page %}
 
-    {% for post in page %}
-    <h3>
-        Автор: {{ post.author.get_full_name }}, Дата публикации: {{ post.pub_date|date:"d M Y" }}
-    </h3>
-    <p>{{ post.text|linebreaksbr }}</p>
-    {% if not forloop.last %}<hr>{% endif %}
-    {% endfor %}
+            <p>{% include 'includes/post_card.html' with post=post %}</p>
+            {% if not forloop.last %}<hr>{% endif %}
+            {% endfor %}
 
-    {% include "includes/paginator.html" %}
-
+        {% endcache %}
+        {% include "includes/paginator.html" %}
 {% endblock %}

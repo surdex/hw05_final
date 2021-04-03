@@ -21,9 +21,9 @@
                 {% endfor %}
 
                 {% if post %}
-                  <form method="post" action="{% url 'post_edit' username=user.username post_id=post.id %}">
+                  <form method="post" action="{% url 'post_edit' username=user.username post_id=post.id %}" enctype="multipart/form-data">
                 {% else %}
-                  <form method="post" action="{% url 'new_post' %}">
+                  <form method="post" action="{% url 'new_post' %}" enctype="multipart/form-data">
                 {% endif %}
 
                     {% csrf_token %}
