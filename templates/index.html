@@ -1,4 +1,4 @@
-{% extends "includes/base.html" %}
+{% extends "base.html" %}
 {% block title %}Последние обновления на сайте{% endblock %}
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
@@ -7,10 +7,10 @@
         {% cache 20 index_page page %}    
             {% for post in page %}
 
-            <p>{% include 'includes/post_card.html' with post=post %}</p>
-            {% if not forloop.last %}<hr>{% endif %}
+              <p>{% include 'includes/post_card.html' with post=post %}</p>
+              {% if not forloop.last %}<hr>{% endif %}
             {% endfor %}
 
         {% endcache %}
-        {% include "includes/paginator.html" %}
+    {% include "includes/paginator.html" %}
 {% endblock %}

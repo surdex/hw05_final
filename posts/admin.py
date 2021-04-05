@@ -17,7 +17,7 @@ class GroupAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-class CommetAdmin(admin.ModelAdmin):
+class CommentAdmin(admin.ModelAdmin):
     list_display = ('pk', 'text', 'created', 'author', 'post')
     search_fields = ('text',)
     list_filter = ('created',)
@@ -33,5 +33,5 @@ class FollowAdmin(admin.ModelAdmin):
 
 admin.site.register(Post, PostAdmin)
 admin.site.register(Group, GroupAdmin)
-admin.site.register(Comment, CommetAdmin)
+admin.site.register(Comment, CommentAdmin)
 admin.site.register(Follow, FollowAdmin)

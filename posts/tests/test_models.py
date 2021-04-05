@@ -39,7 +39,7 @@ class ModelTest(TestCase):
             with self.subTest(values=values):
                 self.assertEqual(values, expected)
 
-    def test_Post_verbose_names(self):
+    def test_post_verbose_names(self):
         """verbose_name в полях Post совпадает с ожидаемым."""
         model_post = ModelTest.post
         field_verboses = {
@@ -55,7 +55,7 @@ class ModelTest(TestCase):
                     expected,
                 )
 
-    def test_Post_help_texts(self):
+    def test_post_help_texts(self):
         """help_text в полях Post совпадает с ожидаемым."""
         model_post = ModelTest.post
         field_help_text = {
@@ -71,7 +71,7 @@ class ModelTest(TestCase):
                     model_post._meta.get_field(value).help_text, expected
                 )
 
-    def test_Comment_verbose_names(self):
+    def test_comment_verbose_names(self):
         """verbose_name в полях Comment совпадает с ожидаемым."""
         model_comment = ModelTest.comment
 
@@ -80,7 +80,7 @@ class ModelTest(TestCase):
             'Текст комментария'
         )
 
-    def test_Comment_help_texts(self):
+    def test_comment_help_texts(self):
         """help_text в полях Comment совпадает с ожидаемым."""
         model_comment = ModelTest.comment
 

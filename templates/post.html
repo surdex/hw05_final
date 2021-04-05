@@ -1,20 +1,18 @@
-{% extends "includes/base.html" %}
+{% extends "base.html" %}
 {% block title %}Страница публикации автора {{ author.get_username }}{% endblock %}
 {% block header %}{% endblock %}
 {% block content %}
-<main role="main" class="container">
-        <div class="row">
-                <div class="col-md-3 mb-3 mt-1">
-                    {% include 'includes/user_card.html' %}
-                </div>
-
-                <div class="col-md-9">
-
-                <!-- Пост -->  
-                {% include 'includes/post_card.html' %}
-                {% include 'includes/comments.html' %}
-     </div>
+  <main role="main" class="container">
+    <div class="row">
+      <div class="col-md-3 mb-3 mt-1">
+        {% include 'includes/user_card.html' %}
+      </div>
+      <div class="col-md-9">
+        <!-- Пост -->  
+        {% include 'includes/post_card.html' %}
+        {% include 'includes/comments.html' %}
+      </div>
     </div>
-</main>
+  </main>
 
 {% endblock %}

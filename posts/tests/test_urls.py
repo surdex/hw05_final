@@ -27,22 +27,24 @@ class StaticURLTests(TestCase):
             author=cls.user,
             group=cls.group,
         )
-        cls.URLs_list_for_guest = [
+        cls.urls_for_guest = [
             '/',
             f'/group/{cls.group.slug}/',
             f'/{cls.user.username}/',
-            f'/test_user/{cls.post.id}/',
+            f'/{cls.user.username}/{cls.post.id}/',
         ]
-        cls.URLs_list_for_authorized = [
+        cls.urls_for_authorized = [
             '/new/',
             '/follow/',
             f'/{cls.user.username}/{cls.post.id}/edit/',
         ]
-        cls.redir_for_authorized = {
+        cls.redir_dict_for_authorized = {
+            f'/{cls.user.username}/{cls.post.id}/edit/':
+                f'/{cls.user.username}/{cls.post.id}/',
             f'/{cls.user.username}/{cls.post.id}/comment/':
                 f'/{cls.user.username}/{cls.post.id}/',
-            f'/{cls.user.username}/follow/': '/',
-            f'/{cls.user.username}/unfollow/': '/',
+            f'/{cls.user.username}/follow/': f'/{cls.user.username}/',
+            f'/{cls.user.username}/unfollow/': f'/{cls.user.username}/',
         }
 
     def setUp(self):
@@ -54,19 +56,9 @@ class StaticURLTests(TestCase):
             StaticURLTests.user_without_posts
         )
 
-    def test_new_and_post_edit_url_redirect_anonymous(self):
-        """Страницы перенаправляющие анонимного пользователя."""
-        redir_for_authorized = StaticURLTests.redir_for_authorized
-
-        for url, redir_url in redir_for_authorized.items():
-            with self.subTest(url=url):
-                response = self.authorized_client.get(url, follow=True)
-
-                self.assertRedirects(response, redir_url)
-
     def test_URls_exists_at_desired_location_for_guest(self):
         """Страницы доступные любому пользователю."""
-        for url in StaticURLTests.URLs_list_for_guest:
+        for url in StaticURLTests.urls_for_guest:
             with self.subTest(url=url):
                 response = self.guest_client.get(url)
 
@@ -74,32 +66,37 @@ class StaticURLTests(TestCase):
 
     def test_URls_exists_at_desired_location_only_for_authorized(self):
         """Страницы доступные только авторизованному автору поста."""
-        for url in StaticURLTests.URLs_list_for_authorized:
+        for url in StaticURLTests.urls_for_authorized:
             with self.subTest(url=url):
                 response = self.authorized_client.get(url)
 
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_new_and_post_edit_url_redirect_anonymous(self):
+    def test_urls_redirect_anonymous_client(self):
         """Страницы перенаправляющие анонимного пользователя."""
         login = reverse('login')
+        urls_for_authorized = StaticURLTests.urls_for_authorized
+        redir_dict_for_authorized = StaticURLTests.redir_dict_for_authorized
+        urls = urls_for_authorized + list(redir_dict_for_authorized.keys())
 
-        for url in StaticURLTests.URLs_list_for_authorized:
+        for url in urls:
             with self.subTest(url=url):
                 response = self.guest_client.get(url, follow=True)
 
                 self.assertRedirects(response, f'{login}?next={url}')
 
-    def test_post_edit_url_redirect_authorized_on_post_page(self):
-        """Страница post_edit перенаправляет не автора поста."""
-        post_id = StaticURLTests.post.id
+    def test_urls_redirect_authorized_client(self):
+        """Страницы перенаправляющие авторизованного пользователя"""
+        redir_dict_for_authorized = StaticURLTests.redir_dict_for_authorized
 
-        response = self.authorized_client_without_posts.get(
-            f'/test_user/{post_id}/edit/',
-            follow=True
-        )
+        for url, redir_url in redir_dict_for_authorized.items():
+            with self.subTest(url=url):
+                response = self.authorized_client_without_posts.get(
+                    url,
+                    follow=True
+                )
 
-        self.assertRedirects(response, f'/test_user/{post_id}/')
+                self.assertRedirects(response, redir_url)
 
     def test_urls_uses_correct_template(self):
         """URL-адреса использует соответствующий шаблон."""
@@ -109,8 +106,9 @@ class StaticURLTests(TestCase):
             f'/{StaticURLTests.user.username}/{StaticURLTests.post.id}/edit/':
                 'new_post.html',
             '/new/': 'new_post.html',
-            f'/test_user/{StaticURLTests.post.id}/': 'post.html',
-            f'/{StaticURLTests.user.username}/': 'profile.html'
+            f'/{StaticURLTests.user}/{StaticURLTests.post.id}/': 'post.html',
+            f'/{StaticURLTests.user.username}/': 'profile.html',
+            '/follow/': 'follow.html'
         }
 
         for url, template in templates_url_names.items():

@@ -140,6 +140,7 @@ class PostPagesTests(TestCase):
         page_object = response.context['page'][first_object]
 
         self.assertIn('page', response.context)
+        self.assertContains(response, '<img')
         self.context_page_assertions(page_object, test_post)
 
     def test_group_with_post_pages_show_correct_context(self):
@@ -156,6 +157,7 @@ class PostPagesTests(TestCase):
 
         self.assertIn('page', response.context)
         self.assertIn('group', response.context)
+        self.assertContains(response, '<img')
         self.context_page_assertions(page_object, test_post)
         self.assertEqual(response_group.title, group.title)
         self.assertEqual(response_group.slug, group.slug)
@@ -204,6 +206,7 @@ class PostPagesTests(TestCase):
         self.assertIn('page', response.context)
         self.assertIn('author', response.context)
         self.assertIn('count_posts', response.context)
+        self.assertContains(response, '<img')
         self.context_page_assertions(page_object, test_post)
         self.assertEqual(author_object.get_full_name(),
                          PostPagesTests.user.get_full_name())
@@ -234,6 +237,7 @@ class PostPagesTests(TestCase):
         self.assertIn('comments', response.context)
         self.assertIn('form', response.context)
         self.assertIn('count_posts', response.context)
+        self.assertContains(response, '<img')
         self.context_page_assertions(page_object, test_post)
         self.assertEqual(author_object.get_full_name(),
                          PostPagesTests.user.get_full_name())
@@ -324,7 +328,7 @@ class PostPagesTests(TestCase):
 
     def test_follow_page_show_correct_context(self):
         """Шаблон follow сформированы с правильным контекстом,
-        созданная запись отображается только для подписщика"""
+        созданная запись отображается только для подписчика"""
         post = PostPagesTests.post
         subscribed_user = PostPagesTests.subscribed_user
         unsubscribed_user = PostPagesTests.unsubscribed_user
@@ -362,34 +366,43 @@ class PostPagesTests(TestCase):
 
         self.assertIn('page', response_subscribed.context)
         self.assertIn('page', response_unsubscribed.context)
+        self.assertContains(response_subscribed, '<img')
+        self.assertContains(response_unsubscribed, '<img')
         self.context_page_assertions(page_object, test_post)
         self.context_page_assertions(page_object_unsub, post)
 
-    def test_profile_follow_and_unfollow(self):
-        """Проверка системы подписок profile_follow/unfollow"""
-        user = PostPagesTests.user
+    def test_profile_follow(self):
+        """Проверка системы подписок profile_follow"""
         unsubscribed_user = PostPagesTests.unsubscribed_user
+        subscribed_user = PostPagesTests.subscribed_user
 
         authorized_unsubscribed = Client()
         authorized_unsubscribed.force_login(unsubscribed_user)
         authorized_unsubscribed.get(
-            reverse('profile_follow', kwargs={'username': user})
+            reverse('profile_follow', kwargs={'username': subscribed_user})
         )
 
         self.assertTrue(
             Follow.objects.filter(
-                author=user,
+                author=subscribed_user,
                 user=unsubscribed_user
             ).exists()
         )
 
-        authorized_unsubscribed.get(
-            reverse('profile_unfollow', kwargs={'username': user})
+    def test_profile_unfollow(self):
+        """Проверка системы подписок profile_unfollow"""
+        unsubscribed_user = PostPagesTests.unsubscribed_user
+        subscribed_user = PostPagesTests.subscribed_user
+
+        authorized_subscribed = Client()
+        authorized_subscribed.force_login(subscribed_user)
+        authorized_subscribed.get(
+            reverse('profile_unfollow', kwargs={'username': unsubscribed_user})
         )
 
         self.assertFalse(
             Follow.objects.filter(
-                author=user,
-                user=unsubscribed_user
+                author=unsubscribed_user,
+                user=subscribed_user
             ).exists()
         )
