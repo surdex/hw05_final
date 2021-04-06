@@ -64,10 +64,6 @@ class PostPagesTests(TestCase):
             author=cls.user,
             post=cls.post
         )
-        Follow.objects.create(author=cls.unsubscribed_user,
-                              user=cls.subscribed_user)
-        Follow.objects.create(author=cls.user,
-                              user=cls.unsubscribed_user)
         kwarg_for_post = {
             'username': PostPagesTests.user.username,
             'post_id': PostPagesTests.post.id
@@ -326,12 +322,13 @@ class PostPagesTests(TestCase):
         self.assertIn(new_post, response.context['page'],
                       'Проверка отчистки кеша')
 
-    def test_follow_page_show_correct_context(self):
+    def test_follow_page_show_correct_context_for_subscribed(self):
         """Шаблон follow сформированы с правильным контекстом,
-        созданная запись отображается только для подписчика"""
-        post = PostPagesTests.post
+        созданная запись отображается у подписчика"""
         subscribed_user = PostPagesTests.subscribed_user
         unsubscribed_user = PostPagesTests.unsubscribed_user
+        Follow.objects.create(author=unsubscribed_user,
+                              user=subscribed_user)
         new_gif = (
             b'\x47\x49\x46\x38\x39\x61\x01\x00'
             b'\x01\x00\x00\x00\x00\x21\xf9\x04'
@@ -352,23 +349,52 @@ class PostPagesTests(TestCase):
         first_object = 0
 
         authorized_subscribed = Client()
-        authorized_unsubscribed = Client()
         authorized_subscribed.force_login(subscribed_user)
-        authorized_unsubscribed.force_login(unsubscribed_user)
         response_subscribed = authorized_subscribed.get(
             reverse('follow_index')
         )
+        page_object = response_subscribed.context['page'][first_object]
+
+        self.assertIn('page', response_subscribed.context)
+        self.assertContains(response_subscribed, '<img')
+        self.context_page_assertions(page_object, test_post)
+
+    def test_follow_page_show_correct_context_for_unsubscribed(self):
+        """Шаблон follow сформированы с правильным контекстом,
+        созданная запись не отображается у неподписанного пользователя"""
+        post = PostPagesTests.post
+        subscribed_user = PostPagesTests.subscribed_user
+        unsubscribed_user = PostPagesTests.unsubscribed_user
+        Follow.objects.create(author=PostPagesTests.user,
+                              user=unsubscribed_user)
+        new_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00'
+            b'\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00'
+            b'\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+        new_uploaded = SimpleUploadedFile(
+            name='new.gif',
+            content=new_gif,
+            content_type='image/gif'
+        )
+        Post.objects.create(
+            text='Another test publication',
+            author=subscribed_user,
+            image=new_uploaded
+        )
+        first_object = 0
+
+        authorized_unsubscribed = Client()
+        authorized_unsubscribed.force_login(unsubscribed_user)
         response_unsubscribed = authorized_unsubscribed.get(
             reverse('follow_index')
         )
-        page_object = response_subscribed.context['page'][first_object]
         page_object_unsub = response_unsubscribed.context['page'][first_object]
 
-        self.assertIn('page', response_subscribed.context)
         self.assertIn('page', response_unsubscribed.context)
-        self.assertContains(response_subscribed, '<img')
         self.assertContains(response_unsubscribed, '<img')
-        self.context_page_assertions(page_object, test_post)
         self.context_page_assertions(page_object_unsub, post)
 
     def test_profile_follow(self):
@@ -376,16 +402,25 @@ class PostPagesTests(TestCase):
         unsubscribed_user = PostPagesTests.unsubscribed_user
         subscribed_user = PostPagesTests.subscribed_user
 
-        authorized_unsubscribed = Client()
-        authorized_unsubscribed.force_login(unsubscribed_user)
-        authorized_unsubscribed.get(
-            reverse('profile_follow', kwargs={'username': subscribed_user})
+        self.assertFalse(
+            Follow.objects.filter(
+                author=unsubscribed_user,
+                user=subscribed_user
+            ).exists(),
+            'Объект Follow уже существует, тест test_profile_follow '
+            '- неисправен'
+        )
+
+        authorized_subscribed = Client()
+        authorized_subscribed.force_login(subscribed_user)
+        authorized_subscribed.get(
+            reverse('profile_follow', kwargs={'username': unsubscribed_user})
         )
 
         self.assertTrue(
             Follow.objects.filter(
-                author=subscribed_user,
-                user=unsubscribed_user
+                author=unsubscribed_user,
+                user=subscribed_user
             ).exists()
         )
 
@@ -393,6 +428,8 @@ class PostPagesTests(TestCase):
         """Проверка системы подписок profile_unfollow"""
         unsubscribed_user = PostPagesTests.unsubscribed_user
         subscribed_user = PostPagesTests.subscribed_user
+        Follow.objects.create(author=unsubscribed_user,
+                              user=subscribed_user)
 
         authorized_subscribed = Client()
         authorized_subscribed.force_login(subscribed_user)
